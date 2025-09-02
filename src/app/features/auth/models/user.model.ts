@@ -2,8 +2,9 @@ export interface User {
   id: number;
   email: string;
   password: string;
+  name: string;
   role: 'user' | 'admin';
-  createdAt: Date;
+  // createdAt: Date;
 }
 
 export interface LoginRequest {
@@ -12,6 +13,7 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
+  name: string;
   email: string;
   password: string;
   confirmPassword: string;

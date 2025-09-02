@@ -10,7 +10,7 @@ import { TodoListComponent } from './features/todos/components/todo-list';
   template: `
     <app-header></app-header>
     <main class="container mx-auto p-4">
-      <app-todo-list></app-todo-list>
+      <router-outlet></router-outlet>
     </main>
   `,
   styles: [],
