@@ -43,6 +43,10 @@ export class TodoService {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  addTodo(todo: Todo) {
+    this.todos.update((todos) => [...todos, todo]);
+  }
+
   // GET - Récupérer tous les todos
   async getAllTodos(): Promise<Todo[]> {
     console.warn('🔄 Service: Récupération de tous les todos...');

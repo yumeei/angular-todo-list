@@ -212,6 +212,10 @@ export class TodoListComponent implements OnInit {
     }
   }
 
+  // addTodo(todo: Todo) {
+  //   this.todoService.addTodo(todo);
+  // }
+
   async updateStatus(id: number, status: Todo['status']) {
     try {
       await this.todoService.updateTodo(id, { status });
