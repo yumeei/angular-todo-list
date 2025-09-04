@@ -5,8 +5,8 @@ import { Directive, ElementRef, inject, Input, OnInit, Renderer2 } from '@angula
   standalone: true,
 })
 export class HighlightDirective implements OnInit {
-  @Input() appHighlight = 'yellow';
-  @Input() appHighlightDelay = 0;
+  @Input() appHighlight?: string;
+  @Input() appHighlightDelay?: number;
 
   private el = inject(ElementRef);
   private renderer = inject(Renderer2);

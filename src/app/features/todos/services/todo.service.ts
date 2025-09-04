@@ -127,6 +127,10 @@ export class TodoService {
     return deleted;
   }
 
+  getTodos() {
+    return this.todos();
+  }
+
   // Méthodes utilitaires
   getTodosByStatus(status: Todo['status']): Todo[] {
     return this.todos().filter((todo) => todo.status === status);

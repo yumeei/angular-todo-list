@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, inject } from '@angular/core';
+import { Component, signal, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Todo } from '../models/todo.model';
@@ -10,6 +10,7 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
   selector: 'app-todo-list',
   standalone: true,
   imports: [CommonModule, FormsModule, PriorityPipe, HighlightDirective],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <!-- Dashboard des statistiques -->
     <div class="mb-8">
@@ -40,6 +41,64 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
       </div>
     </div>
 
+    <!-- Loading state -->
+    @if (loading()) {
+      <div class="text-center py-8">
+        <div
+          class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+        ></div>
+        <p class="mt-2 text-gray-600">Chargement des todos...</p>
+      </div>
+    } @else {
+      <!-- Formulaire d'ajout -->
+      <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+        <h3 class="text-xl font-semibold mb-4">Ajouter une tâche</h3>
+        <form (ngSubmit)="addTodo()" #todoForm="ngForm">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <input
+              type="text"
+              [(ngModel)]="newTodo.title"
+              name="title"
+              placeholder="Titre de la tâche"
+              class="border p-2 rounded"
+              required
+            />
+
+            <input
+              type="text"
+              [(ngModel)]="newTodo.description"
+              name="description"
+              placeholder="Description (optionnel)"
+              class="border p-2 rounded"
+            />
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <select [(ngModel)]="newTodo.priority" name="priority" class="border p-2 rounded">
+              <option value="low">Basse priorité</option>
+              <option value="medium">Priorité moyenne</option>
+              <option value="high">Haute priorité</option>
+            </select>
+
+            <button
+              type="submit"
+              [disabled]="!todoForm.form.valid || addingTodo()"
+              class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+            >
+              @if (addingTodo()) {
+                <span
+                  class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
+                ></span>
+                Ajout en cours...
+              } @else {
+                Ajouter
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
     <!-- Colonnes Kanban -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <!-- À faire -->
@@ -49,7 +108,7 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
           <span class="text-sm text-gray-500">({{ todoService.pendingTodos().length }})</span>
         </h3>
         <div class="space-y-3">
-          @for (todo of todoService.pendingTodos(); track todo.id) {
+          @for (todo of todoService.pendingTodos(); track trackByTodoId($index, todo)) {
             <div
               class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-gray-400"
               [appHighlight]="todo.priority === 'high' ? 'rgba(239, 68, 68, 0.1)' : 'transparent'"
@@ -68,6 +127,12 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
                 >
                   {{ todo.priority | priority }}
                 </span>
+                <button
+                  (click)="updateStatus(todo.id, 'in-progress')"
+                  class="text-blue-600 hover:text-blue-800"
+                >
+                  Commencer
+                </button>
               </div>
               @if (todo.description) {
                 <p class="text-sm text-gray-600 mb-3">{{ todo.description }}</p>
@@ -87,7 +152,7 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
           <span class="text-sm text-gray-500">({{ todoService.inProgressTodos().length }})</span>
         </h3>
         <div class="space-y-3">
-          @for (todo of todoService.inProgressTodos(); track todo.id) {
+          @for (todo of todoService.inProgressTodos(); track trackByTodoId($index, todo)) {
             <div
               class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-400"
               [appHighlight]="todo.priority === 'high' ? 'rgba(239, 68, 68, 0.1)' : 'transparent'"
@@ -106,6 +171,12 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
                 >
                   {{ todo.priority | priority }}
                 </span>
+                <button
+                  (click)="updateStatus(todo.id, 'done')"
+                  class="text-green-600 hover:text-green-800"
+                >
+                  Terminer
+                </button>
               </div>
               @if (todo.description) {
                 <p class="text-sm text-gray-600 mb-3">{{ todo.description }}</p>
@@ -125,7 +196,7 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
           <span class="text-sm text-gray-500">({{ todoService.completedTodos().length }})</span>
         </h3>
         <div class="space-y-3">
-          @for (todo of todoService.completedTodos(); track todo.id) {
+          @for (todo of todoService.completedTodos(); track trackByTodoId($index, todo)) {
             <div
               class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-400"
               [appHighlight]="todo.priority === 'high' ? 'rgba(34, 197, 94, 0.1)' : 'transparent'"
@@ -144,6 +215,9 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
                 >
                   {{ todo.priority | priority }}
                 </span>
+                <button (click)="deleteTodo(todo.id)" class="text-red-600 hover:text-red-800">
+                  Supprimer
+                </button>
               </div>
               @if (todo.description) {
                 <p class="text-sm text-gray-600 mb-3 line-through">{{ todo.description }}</p>
@@ -237,5 +311,9 @@ export class TodoListComponent implements OnInit {
   // Méthodes utilitaires
   getTodosByStatus(status: Todo['status']): Todo[] {
     return this.todos().filter((todo) => todo.status === status);
+  }
+
+  trackByTodoId(_: number, todo: Todo): string {
+    return todo.id.toString();
   }
 }

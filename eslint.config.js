@@ -1,4 +1,7 @@
-// @ts-check
+// import js from '@eslint/js';
+// import angular from '@angular-eslint/eslint-plugin';
+// import angularTemplate from '@angular-eslint/eslint-plugin-template';
+
 const eslint = require("@eslint/js");
 const tseslint = require("typescript-eslint");
 const angular = require("angular-eslint");
